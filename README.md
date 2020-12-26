@@ -1,2 +1,2 @@
-# XYIjkPlayerDeme
+# XYIjkPlayerDemo
 高铁车载使用RTSP协议实现投屏产品Deme，相比DLNA和WifiDisplay提高设备兼容性。
