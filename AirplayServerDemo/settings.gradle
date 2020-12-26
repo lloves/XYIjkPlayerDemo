@@ -1,0 +1,2 @@
+include ':app', ':xyairplaylib'
+rootProject.name='AirplayServerDemo'
