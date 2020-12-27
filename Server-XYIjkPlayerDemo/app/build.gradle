@@ -44,5 +44,6 @@ dependencies {
     implementation files('libs/ijkplayer-armv7a-release.aar')
     implementation files('libs/ijkplayer-java-release.aar')
     implementation files('libs/ijkplayer-arm64-release.aar')
+    implementation files('libs/xyairplaylib-release.aar')
 
 }

@@ -1,6 +1,9 @@
 package com.xy.examples.xyijkplayerdemo;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -31,14 +34,26 @@ public class MainActivity extends AppCompatActivity implements VideoListener{
 
         // rtsp phone
         xyPlayerView.setPath("rtsp://192.168.43.1:8086");
-
-
         try {
             xyPlayerView.load();
         } catch (IOException e) {
             Toast.makeText(this,"播放失败",Toast.LENGTH_SHORT);
             e.printStackTrace();
         }
+
+
+        // airplay test activity
+
+        Button button = (Button) findViewById(R.id.start_air_play);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, AirplayActivity.class);
+                startActivity(intent);
+            }
+        });
+        
 
     }
 

@@ -6,11 +6,36 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <com.xy.examples.xyijkplayerdemo.XYPlayerFragmentLayout
-        android:id="@+id/xy_player"
+    <LinearLayout
         android:layout_width="match_parent"
+        android:orientation="vertical"
         android:layout_height="match_parent">
 
-    </com.xy.examples.xyijkplayerdemo.XYPlayerFragmentLayout>
+
+        <com.xy.examples.xyijkplayerdemo.XYPlayerFragmentLayout
+            android:id="@+id/xy_player"
+            android:layout_width="match_parent"
+            android:layout_weight="10"
+            android:layout_height="0dp">
+
+        </com.xy.examples.xyijkplayerdemo.XYPlayerFragmentLayout>
+
+        <Button
+            android:id="@+id/start_air_play"
+            android:text="@string/start_air_play"
+            android:layout_width="match_parent"
+            android:background="@android:color/holo_orange_light"
+            android:layout_weight="1"
+            android:layout_height="0dp">
+
+        </Button>
+
+
+    </LinearLayout>
+
+
+
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

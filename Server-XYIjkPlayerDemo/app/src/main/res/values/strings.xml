@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">XYIjkPlayerDemo</string>
+    <string name="start_air_play">打开Airplay</string>
 </resources>
