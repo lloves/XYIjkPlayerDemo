@@ -61,6 +61,7 @@ struct raop_rtp_mirror_s {
     int mirror_data_sock, mirror_time_sock;
 
     unsigned short mirror_data_lport;
+    // client ntp port
     unsigned short mirror_timing_rport;
     unsigned short mirror_timing_lport;
 };
@@ -470,7 +471,7 @@ raop_rtp_mirror_thread(void *arg)
 }
 
 void
-raop_rtp_start_mirror(raop_rtp_mirror_t *raop_rtp_mirror, int use_udp, unsigned short mirror_timing_rport, unsigned short * mirror_timing_lport,
+raop_rtp_start_mirror(raop_rtp_mirror_t *raop_rtp_mirror, int use_udp, unsigned short * mirror_timing_lport,
                       unsigned short *mirror_data_lport)
 {
     int use_ipv6 = 0;

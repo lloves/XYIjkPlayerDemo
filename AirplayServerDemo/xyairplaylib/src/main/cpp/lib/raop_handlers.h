@@ -241,14 +241,14 @@ raop_handler_options(raop_conn_t *conn,
 	http_response_add_header(response, "Public", "SETUP, RECORD, PAUSE, FLUSH, TEARDOWN, OPTIONS, GET_PARAMETER, SET_PARAMETER");
 }
 
-static int setup = 0;
 
 static void
 raop_handler_setup(raop_conn_t *conn,
                    http_request_t *request, http_response_t *response,
                    char **response_data, int *response_datalen)
 {
-    unsigned short remote_cport=0, remote_tport=0;
+    // unsigned short remote_cport=0, remote_tport=0;
+    unsigned short remote_cport=0;
 
     const char *transport;
     char buffer[1024];
@@ -286,10 +286,11 @@ raop_handler_setup(raop_conn_t *conn,
     plist_t root_node = NULL;
     plist_from_bin(data, datalen, &root_node);
     plist_t streams_note = plist_dict_get_item(root_node, "streams");
-    if (setup == 0) {
+    // if (setup == 0) {
+    if (conn->setup_status == SETUP_INITIAL) {
 		unsigned char aesiv[16];
 		unsigned char aeskey[16];
-        setup++;
+        // setup++;
         logger_log(conn->raop->logger, LOGGER_DEBUG, "SETUP 1");
         // First setup
         plist_t eiv_note = plist_dict_get_item(root_node, "eiv");
@@ -308,16 +309,19 @@ raop_handler_setup(raop_conn_t *conn,
         plist_t time_note = plist_dict_get_item(root_node, "timingPort");
         plist_get_uint_val(time_note, &timing_rport);
 		logger_log(conn->raop->logger, LOGGER_DEBUG, "timing_rport = %llu", timing_rport);
-        // ekey is 72 bytes
+        // ekey is 72 bytes. aeskey is 16 bytes.
         int ret = fairplay_decrypt(conn->fairplay, ekey, aeskey);
         logger_log(conn->raop->logger, LOGGER_DEBUG, "fairplay_decrypt ret = %d", ret);
 		unsigned char ecdh_secret[32];
         pairing_get_ecdh_secret_key(conn->pairing, ecdh_secret);
         conn->raop_rtp = raop_rtp_init(conn->raop->logger, &conn->raop->callbacks, conn->remote, conn->remotelen, aeskey, aesiv, ecdh_secret, timing_rport);
 		conn->raop_rtp_mirror = raop_rtp_mirror_init(conn->raop->logger, &conn->raop->callbacks, conn->remote, conn->remotelen, aeskey, ecdh_secret, timing_rport);
-    } else if (setup == 1) {
+
+        conn->setup_status = SETUP_KEY;
+
+    } else if (conn->setup_status == SETUP_KEY) {
 		unsigned short tport=0, dport=0;
-        setup++;
+        // setup++;
         logger_log(conn->raop->logger, LOGGER_DEBUG, "SETUP 2");
 		plist_t stream_note = plist_array_get_item(streams_note, 0);
 		plist_t type_note = plist_dict_get_item(stream_note, "type");
@@ -332,7 +336,8 @@ raop_handler_setup(raop_conn_t *conn,
 
         if (conn->raop_rtp_mirror) {
 			raop_rtp_init_mirror_aes(conn->raop_rtp_mirror, streamConnectionID);
-			raop_rtp_start_mirror(conn->raop_rtp_mirror, use_udp, remote_tport, &tport, &dport);
+			// raop_rtp_start_mirror(conn->raop_rtp_mirror, use_udp, remote_tport, &tport, &dport);
+            raop_rtp_start_mirror(conn->raop_rtp_mirror, use_udp, &tport, &dport);
             logger_log(conn->raop->logger, LOGGER_DEBUG, "RAOP initialized success");
         } else {
             logger_log(conn->raop->logger, LOGGER_ERR, "RAOP not initialized at SETUP, playing will fail!");
@@ -360,12 +365,14 @@ raop_handler_setup(raop_conn_t *conn,
         memcpy(*response_data, rsp, len);
         *response_datalen = len;
         logger_log(conn->raop->logger, LOGGER_INFO, "dport = %d, tport = %d", dport, tport);
-    } else {
+        conn->setup_status = SETUP_MIRROR_PORT;
+    } else if (conn->setup_status == SETUP_MIRROR_PORT) {
         logger_log(conn->raop->logger, LOGGER_DEBUG, "SETUP 3");
         unsigned short cport = 0, tport = 0, dport = 0;
 
         if (conn->raop_rtp) {
-            raop_rtp_start_audio(conn->raop_rtp, use_udp, remote_cport, remote_tport, &cport, &tport, &dport);
+            // raop_rtp_start_audio(conn->raop_rtp, use_udp, remote_cport, remote_tport, &cport, &tport, &dport);
+            raop_rtp_start_audio(conn->raop_rtp, use_udp, remote_cport, &cport, &tport, &dport);
             logger_log(conn->raop->logger, LOGGER_DEBUG, "RAOP initialized success");
         } else {
             logger_log(conn->raop->logger, LOGGER_ERR, "RAOP not initialized at SETUP, playing will fail!");
@@ -414,6 +421,7 @@ raop_handler_setup(raop_conn_t *conn,
 		*response_datalen = len;
 
 		logger_log(conn->raop->logger, LOGGER_INFO, "dport = %d, tport = %d, cport = %d", dport, tport, cport);
+        conn->setup_status = SETUP_AUDIO_PORT;
     }
 
 }
